@@ -1,39 +1,22 @@
-const { Task, TaskGroup, applyStrategy } = require("./src/tasks");
 const {
-  AgileStrategy,
-  WaterfallStrategy,
-  SpiralStrategy,
-  RUPStrategy,
-} = require("./src/strategies");
+  Document,
+  WatermarkDecorator,
+} = require("./src/documents");
+const {
+  CloneDocumentCommand,
+  ApplyWatermarkCommand,
+} = require("./src/document_commands");
 
-const project = new TaskGroup("Release 1.0");
+console.log("Document Manager ");
 
-const frontend = new TaskGroup("Frontend");
-frontend.add(new Task("Landing page layout", "design"));
-frontend.add(new Task("UI components", "development"));
+const baseDoc = new Document("Spec", "Initial requirements.");
+baseDoc.setContent(`${baseDoc.getContent()}\nAdded scope and milestones.`);
 
-const backend = new TaskGroup("Backend");
-backend.add(new Task("Auth service", "development"));
-backend.add(new Task("Reporting API", "development"));
+const copy = new CloneDocumentCommand(baseDoc).execute();
+const decorated = new ApplyWatermarkCommand(
+  copy,
+  (doc) => new WatermarkDecorator(doc, "int")
+).execute();
 
-const qa = new TaskGroup("QA");
-qa.add(new Task("Regression suite", "testing"));
-qa.add(new Task("Load testing", "testing"));
-
-project.add(frontend);
-project.add(backend);
-project.add(qa);
-
-const strategies = [
-  new AgileStrategy(),
-  new WaterfallStrategy(),
-  new SpiralStrategy(),
-  new RUPStrategy(),
-];
-
-for (const strategy of strategies) {
-  applyStrategy(project, strategy);
-  const title = strategy.constructor.name.replace("Strategy", "");
-  console.log(`\n=== ${title} ===`);
-  console.log(project.execute());
-}
+console.log("Title:", decorated.getTitle());
+console.log("Content:", decorated.getContent());
